@@ -25,6 +25,30 @@ class User extends Authenticatable
     ];
 
     /**
+     * Get enrollments
+     */
+    public function enrollments()
+    {
+        return $this->hasMany(Enrollment::class);
+    }
+
+    /**
+     * Get test attempts
+     */
+    public function testAttempts()
+    {
+        return $this->hasMany(TestAttempt::class);
+    }
+
+    /**
+     * Get payments
+     */
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    /**
      * Check if user is admin
      */
     public function isAdmin(): bool
