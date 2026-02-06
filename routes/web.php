@@ -81,4 +81,21 @@ Route::middleware('auth')->prefix('enrollments')->name('enrollments.')->group(fu
     Route::post('/{enrollment}/cancel', [App\Http\Controllers\EnrollmentController::class, 'cancel'])->name('cancel');
 });
 
+// Payment Routes
+Route::middleware('auth')->prefix('payments')->name('payments.')->group(function () {
+    Route::post('/create/{enrollment}', [App\Http\Controllers\PaymentController::class, 'create'])->name('create');
+    Route::get('/{payment}', [App\Http\Controllers\PaymentController::class, 'show'])->name('show');
+    Route::get('/{payment}/check', [App\Http\Controllers\PaymentController::class, 'checkStatus'])->name('check');
+    Route::get('/{payment}/receipt', [App\Http\Controllers\PaymentController::class, 'receipt'])->name('receipt');
+    
+    // Xendit redirect URLs (public access via signed URL)
+    Route::withoutMiddleware('auth')->group(function () {
+        Route::get('/success/{payment}', [App\Http\Controllers\PaymentController::class, 'success'])->name('success');
+        Route::get('/failed/{payment}', [App\Http\Controllers\PaymentController::class, 'failed'])->name('failed');
+    });
+});
+
+// Webhook Routes (public, no auth)
+Route::post('/webhooks/xendit', [App\Http\Controllers\WebhookController::class, 'xendit'])->name('webhooks.xendit');
+
 require __DIR__.'/auth.php';
