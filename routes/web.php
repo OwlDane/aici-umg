@@ -66,4 +66,19 @@ Route::prefix('placement-test')->name('placement-test.')->group(function () {
     });
 });
 
+// Class Routes
+Route::prefix('classes')->name('classes.')->group(function () {
+    Route::get('/', [App\Http\Controllers\ClassController::class, 'index'])->name('index');
+    Route::get('/{class:slug}', [App\Http\Controllers\ClassController::class, 'show'])->name('show');
+});
+
+// Enrollment Routes
+Route::middleware('auth')->prefix('enrollments')->name('enrollments.')->group(function () {
+    Route::get('/', [App\Http\Controllers\EnrollmentController::class, 'index'])->name('index');
+    Route::get('/create/{class}', [App\Http\Controllers\EnrollmentController::class, 'create'])->name('create');
+    Route::post('/', [App\Http\Controllers\EnrollmentController::class, 'store'])->name('store');
+    Route::get('/{enrollment}', [App\Http\Controllers\EnrollmentController::class, 'show'])->name('show');
+    Route::post('/{enrollment}/cancel', [App\Http\Controllers\EnrollmentController::class, 'cancel'])->name('cancel');
+});
+
 require __DIR__.'/auth.php';
