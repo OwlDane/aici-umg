@@ -43,12 +43,24 @@ class EnrollmentResource extends Resource
     public static function table(Table $table): Table
     {
         return EnrollmentsTable::configure($table)
-            ->modifyQueryUsing(fn ($query) => $query->with([
-                'class.program',
-                'payment',
-                'user',
-                'classSchedule',
-            ]));
+            ->modifyQueryUsing(function ($query) {
+                // Eager load relationships
+                $query->with([
+                    'class.program',
+                    'payment',
+                    'user',
+                    'classSchedule',
+                ]);
+                
+                // Security: Non-admin users can only see their own enrollments
+                // (This is extra protection, admin panel already protected by IsAdmin middleware)
+                $user = auth()->user();
+                if ($user && $user->role !== \App\Enums\UserRole::ADMIN) {
+                    $query->where('user_id', $user->id);
+                }
+                
+                return $query;
+            });
     }
 
     public static function getRelations(): array
