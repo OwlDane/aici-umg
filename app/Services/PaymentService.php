@@ -430,26 +430,52 @@ class PaymentService extends BaseService
     /**
      * Verify Xendit webhook signature
      * 
-     * Security: Verify bahwa webhook benar-benar dari Xendit
+     * Security: Verify bahwa webhook benar-benar dari Xendit menggunakan HMAC SHA256
      * 
-     * @param string $webhookToken
-     * @param string $signature
-     * @param string $payload
+     * Xendit Webhook Verification:
+     * 1. Get x-callback-token header (webhook verification token)
+     * 2. For Invoice webhooks: compare token dengan configured token
+     * 3. For other webhooks: verify HMAC signature if provided
+     * 
+     * @param string $webhookToken - x-callback-token header
+     * @param string $signature - x-signature header (optional, for some webhook types)
+     * @param string $payload - raw request body
      * @return bool
      */
     public function verifyWebhookSignature(string $webhookToken, string $signature, string $payload): bool
     {
-        // Xendit uses callback token for verification
-        // For invoice webhooks, we verify using the webhook token
-        
+        // 1. Check if webhook token is configured
         if (empty($this->xenditWebhookToken)) {
-            $this->log('Xendit webhook token not configured', [], 'warning');
+            $this->log('Xendit webhook token not configured', [], 'error');
             return false;
         }
 
-        // Simple token comparison for development
-        // In production, use proper signature verification
-        return $webhookToken === $this->xenditWebhookToken;
+        // 2. Verify callback token (primary verification for Invoice webhooks)
+        if ($webhookToken !== $this->xenditWebhookToken) {
+            $this->log('Invalid webhook token', [
+                'expected_prefix' => substr($this->xenditWebhookToken, 0, 10) . '...',
+                'received_prefix' => substr($webhookToken, 0, 10) . '...',
+            ], 'warning');
+            return false;
+        }
+
+        // 3. Additional signature verification if provided (for enhanced security)
+        // Some Xendit webhooks include x-signature header with HMAC
+        if (!empty($signature)) {
+            // Compute HMAC SHA256 signature
+            $computedSignature = hash_hmac('sha256', $payload, $this->xenditWebhookToken);
+            
+            if (!hash_equals($computedSignature, $signature)) {
+                $this->log('Invalid webhook HMAC signature', [
+                    'computed_prefix' => substr($computedSignature, 0, 10) . '...',
+                    'received_prefix' => substr($signature, 0, 10) . '...',
+                ], 'warning');
+                return false;
+            }
+        }
+
+        // Verification passed
+        return true;
     }
 
     /**
