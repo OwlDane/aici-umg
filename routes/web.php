@@ -96,6 +96,9 @@ Route::middleware('auth')->prefix('payments')->name('payments.')->group(function
 });
 
 // Webhook Routes (public, no auth)
-Route::post('/webhooks/xendit', [App\Http\Controllers\WebhookController::class, 'xendit'])->name('webhooks.xendit');
+// Rate limiting: 100 requests per minute to prevent abuse
+Route::post('/webhooks/xendit', [App\Http\Controllers\WebhookController::class, 'xendit'])
+    ->name('webhooks.xendit')
+    ->middleware('throttle:100,1'); // 100 requests per 1 minute
 
 require __DIR__.'/auth.php';
