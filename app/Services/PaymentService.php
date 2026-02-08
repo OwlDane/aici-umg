@@ -9,6 +9,7 @@ use App\Models\Payment;
 use Exception;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 /**
  * Service untuk Payment Integration dengan Xendit
@@ -148,6 +149,10 @@ class PaymentService extends BaseService
                     'amount' => $totalAmount,
                     'user_id' => $enrollment->user_id,
                 ]);
+
+                // Send payment created email
+                Mail::to($enrollment->student_email)
+                    ->send(new \App\Mail\Payment\PaymentCreated($payment));
 
             } catch (Exception $e) {
                 // Rollback payment if Xendit fails
@@ -315,7 +320,23 @@ class PaymentService extends BaseService
                     'enrollment_id' => $payment->enrollment_id,
                 ], 'info');
 
-                // Send confirmation email (akan dihandle di event listener)
+                // Send payment success email
+                Mail::to($payment->enrollment->student_email)
+                    ->send(new \App\Mail\Payment\PaymentSuccess($payment));
+
+                // Send enrollment confirmed email
+                Mail::to($payment->enrollment->student_email)
+                    ->send(new \App\Mail\Enrollment\EnrollmentConfirmed($payment->enrollment));
+            }
+
+            // 7. If failed or expired, send failure email
+            if (in_array($payment->status, [PaymentStatus::FAILED, PaymentStatus::EXPIRED])) {
+                $reason = $payment->status === PaymentStatus::EXPIRED 
+                    ? 'Invoice telah kadaluarsa. Silakan buat invoice baru.'
+                    : 'Pembayaran gagal diproses.';
+
+                Mail::to($payment->enrollment->student_email)
+                    ->send(new \App\Mail\Payment\PaymentFailed($payment, $reason));
             }
 
             Log::channel('payment')->info('Webhook processed', [

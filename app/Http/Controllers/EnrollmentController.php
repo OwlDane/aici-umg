@@ -4,10 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Enrollment\CancelEnrollmentRequest;
 use App\Http\Requests\Enrollment\CreateEnrollmentRequest;
+use App\Mail\Enrollment\EnrollmentCancelled;
+use App\Mail\Enrollment\EnrollmentCreated;
 use App\Models\ClassModel;
 use App\Models\Enrollment;
 use App\Services\EnrollmentService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 
 /**
@@ -164,6 +167,10 @@ class EnrollmentController extends BaseController
                 $request->validated()
             );
 
+            // Send enrollment created email
+            Mail::to($enrollment->student_email)
+                ->send(new EnrollmentCreated($enrollment));
+
             return $this->redirectWithSuccess(
                 'enrollments.show',
                 'Pendaftaran berhasil! Silakan lakukan pembayaran.',
@@ -266,6 +273,10 @@ class EnrollmentController extends BaseController
                 $enrollment,
                 $request->cancellation_reason
             );
+
+            // Send enrollment cancelled email
+            Mail::to($enrollment->student_email)
+                ->send(new EnrollmentCancelled($enrollment, $request->cancellation_reason));
 
             return $this->redirectWithSuccess(
                 'enrollments.show',
