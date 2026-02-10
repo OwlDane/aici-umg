@@ -239,6 +239,7 @@ class EnrollmentService extends BaseService
             }
 
             $enrollment->confirm();
+            $enrollment->class->incrementEnrolled();
 
             $this->log('Enrollment confirmed', [
                 'enrollment_id' => $enrollment->id,
