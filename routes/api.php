@@ -22,7 +22,7 @@ use Illuminate\Support\Facades\Route;
  * Rate Limiting: 60 requests per minute
  */
 
-Route::prefix('v1')->group(function () {
+Route::prefix('v1')->middleware('throttle:api')->group(function () {
     
     /**
      * ============================================
