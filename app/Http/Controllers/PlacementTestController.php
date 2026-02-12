@@ -320,4 +320,27 @@ class PlacementTestController extends BaseController
             }),
         ]);
     }
+
+    /**
+     * Download test result PDF
+     * 
+     * @param TestAttempt $attempt
+     * @return \Illuminate\Http\Response
+     */
+    public function downloadResult(TestAttempt $attempt)
+    {
+        // Authorization
+        if ($attempt->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        try {
+            $pdf = $this->testService->generateResultPdf($attempt);
+            
+            return $pdf->download("test-result-{$attempt->id}.pdf");
+
+        } catch (\Exception $e) {
+            return $this->backWithError($e->getMessage());
+        }
+    }
 }

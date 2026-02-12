@@ -185,10 +185,10 @@ class PaymentController extends BaseController
     }
 
     /**
-     * Download payment receipt
+     * Download payment receipt PDF
      * 
      * @param Payment $payment
-     * @return \Inertia\Response
+     * @return \Illuminate\Http\Response
      */
     public function receipt(Payment $payment)
     {
@@ -205,15 +205,9 @@ class PaymentController extends BaseController
         }
 
         try {
-            $receipt = $this->paymentService->generateReceipt($payment);
-
-            return Inertia::render('Payments/Receipt', [
-                'receipt' => $receipt,
-                'payment' => [
-                    'id' => $payment->id,
-                    'invoice_number' => $payment->invoice_number,
-                ],
-            ]);
+            $pdf = $this->paymentService->generateReceiptPdf($payment);
+            
+            return $pdf->download("receipt-{$payment->invoice_number}.pdf");
 
         } catch (\Exception $e) {
             return $this->backWithError($e->getMessage());

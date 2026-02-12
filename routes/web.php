@@ -63,6 +63,7 @@ Route::prefix('placement-test')->name('placement-test.')->group(function () {
         Route::post('/attempt/{attempt}/answer', [App\Http\Controllers\PlacementTestController::class, 'submitAnswer'])->name('answer');
         Route::post('/attempt/{attempt}/complete', [App\Http\Controllers\PlacementTestController::class, 'complete'])->name('complete');
         Route::get('/result/{attempt}', [App\Http\Controllers\PlacementTestController::class, 'result'])->name('result');
+        Route::get('/result/{attempt}/download', [App\Http\Controllers\PlacementTestController::class, 'downloadResult'])->name('download-result');
     });
 });
 
