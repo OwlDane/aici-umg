@@ -125,6 +125,14 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
         Route::get('/tests', [\App\Http\Controllers\Api\Admin\AnalyticsController::class, 'tests'])->name('admin.analytics.tests');
     });
     
+    // Reports
+    Route::prefix('reports')->group(function () {
+        Route::get('/summary', [\App\Http\Controllers\Api\Admin\ReportsController::class, 'summary'])->name('admin.reports.summary');
+        Route::get('/export/revenue', [\App\Http\Controllers\Api\Admin\ReportsController::class, 'exportRevenue'])->name('admin.reports.export.revenue');
+        Route::get('/export/enrollment', [\App\Http\Controllers\Api\Admin\ReportsController::class, 'exportEnrollment'])->name('admin.reports.export.enrollment');
+        Route::get('/export/student', [\App\Http\Controllers\Api\Admin\ReportsController::class, 'exportStudent'])->name('admin.reports.export.student');
+    });
+    
 });
 
 /**
